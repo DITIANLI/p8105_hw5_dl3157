@@ -1,0 +1,18 @@
+---
+title: "ds_hw5"
+author: "Ditian Li"
+date: "2018年11月6日"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(rvest)
+```
+
+```{r}
+list.files("./data")
+name_data = function(list.files("./data"))
+```
+
