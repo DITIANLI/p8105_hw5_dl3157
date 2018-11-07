@@ -11,13 +11,13 @@ library(tidyverse)
 library(rvest)
 ```
 
-```{r}
+```{r p1-1}
 list.files("./data/")
 files <- list.files(path = "./data/", pattern = "*.csv")
 
 ```
 
-```{r}
+```{r p1-2}
 get_data <- function(i) {
   read.csv(paste0("./data/", i))
 }
@@ -27,9 +27,9 @@ mydata<- files %>%
   reduce(rbind) %>% 
   janitor::clean_names()
 
-mydata$arm <- c(rep("con",10), rep("exp",10))
+mydata$type <- c(rep("con",10), rep("exp",10))
 mydata$id <- c(rep(1:10,2))
-mydata$arm_id = paste0(mydata$arm, mydata$id)
+mydata$study_id = paste0(mydata$type, mydata$id)
 mydata <- mydata %>%
   gather(key = week, value = data, week_1:week_8) %>%  
   mutate(week = gsub("_", "", week))
@@ -41,17 +41,21 @@ mydata <- mydata %>%
 
 ```{r}
 mydata %>% 
-  group_by(arm_id) %>% 
+  group_by(study_id) 
+
+mydata %>% 
   ggplot(aes(x = week, y = data)) + 
-    geom_line(aes(colour = arm_id, group = arm_id, linetype = arm)) +
-    theme(legend.position = "bottom") +
+    geom_line(aes(colour = study_id, group = study_id, linetype = type)) +
+    theme(legend.position = "left") +
     labs(
       title = "Spaghetti plot of observations on each subject over week",
       x = "Week",
       y = "Observations"
     )
 ```
-```{r}
-mydata <- data.table::rbindlist(lapply(seq(length(files)) , get_data)) %>%  janitor::clean_names()  
+
+comment: From the plot, we can conclude that the trend of experimental group is roughly increased, the trend of control group is decreased, and experimental group has larger observations than control group overall.
+```{r p2}
+
 ```
 
