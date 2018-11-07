@@ -12,7 +12,46 @@ library(rvest)
 ```
 
 ```{r}
-list.files("./data")
-name_data = function(list.files("./data"))
+list.files("./data/")
+files <- list.files(path = "./data/", pattern = "*.csv")
+
+```
+
+```{r}
+get_data <- function(i) {
+  read.csv(paste0("./data/", i))
+}
+
+mydata<- files %>% 
+  map(get_data) %>%
+  reduce(rbind) %>% 
+  janitor::clean_names()
+
+mydata$arm <- c(rep("con",10), rep("exp",10))
+mydata$id <- c(rep(1:10,2))
+mydata$arm_id = paste0(mydata$arm, mydata$id)
+mydata <- mydata %>%
+  gather(key = week, value = data, week_1:week_8) %>%  
+  mutate(week = gsub("_", "", week))
+
+
+```
+
+
+
+```{r}
+mydata %>% 
+  group_by(arm_id) %>% 
+  ggplot(aes(x = week, y = data)) + 
+    geom_line(aes(colour = arm_id, group = arm_id, linetype = arm)) +
+    theme(legend.position = "bottom") +
+    labs(
+      title = "Spaghetti plot of observations on each subject over week",
+      x = "Week",
+      y = "Observations"
+    )
+```
+```{r}
+mydata <- data.table::rbindlist(lapply(seq(length(files)) , get_data)) %>%  janitor::clean_names()  
 ```
 
