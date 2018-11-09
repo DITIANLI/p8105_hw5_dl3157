@@ -11,6 +11,7 @@ library(tidyverse)
 library(rvest)
 ```
 
+# Problem 1
 ```{r p1-1}
 list.files("./data/")
 files <- list.files(path = "./data/", pattern = "*.csv")
@@ -56,6 +57,8 @@ mydata %>%
 
 comment: From the plot, we can conclude that the trend of experimental group is roughly increased, the trend of control group kept the same, and experimental group has larger observations than control group overall.
 
+
+#Problem 2
 ```{r p2}
 homicide <- 
   read_csv("./data1/homicide-data.csv") %>% 
@@ -135,7 +138,7 @@ city_prop
 ```
 For all 50 cities, we used the prop.test function to estimate the proportion of homicides that are unsolved.
 
-```{r p2 errorbar}
+```{r p2 errorbar,fig.width = 8, fig.height = 10 }
 
 city_prop %>% 
   ggplot(aes(x = reorder(city_state,estimate), y = estimate, color = city_state)) + geom_point() +
