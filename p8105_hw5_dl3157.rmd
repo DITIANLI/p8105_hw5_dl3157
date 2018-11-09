@@ -39,13 +39,13 @@ mydata <- mydata %>%
 
 
 
-```{r}
+```{r p1 plot}
 mydata %>% 
   group_by(study_id) 
 
 mydata %>% 
   ggplot(aes(x = week, y = data)) + 
-    geom_line(aes(colour = study_id, group = study_id, linetype = type)) +
+    geom_line(aes(colour = type, group = study_id, linetype = type)) +
     theme(legend.position = "left") +
     labs(
       title = "Spaghetti plot of observations on each subject over week",
@@ -54,8 +54,100 @@ mydata %>%
     )
 ```
 
-comment: From the plot, we can conclude that the trend of experimental group is roughly increased, the trend of control group is decreased, and experimental group has larger observations than control group overall.
+comment: From the plot, we can conclude that the trend of experimental group is roughly increased, the trend of control group kept the same, and experimental group has larger observations than control group overall.
+
 ```{r p2}
+homicide <- 
+  read_csv("./data1/homicide-data.csv") %>% 
+  janitor::clean_names()
+
+homicide 
+```
+
+This dataset contains 52179 obeservations, including variables as following:uid, reported date, victim first&last name, race, age, sex, city, state, latitude, longtitude and disposition.
+
+```{r p2 summary}
+homicide1<-homicide %>% 
+  mutate(city_state = str_c(city, state, sep = ",")) %>% 
+  select(city_state, everything())
+
+
+homicide_s <- homicide1 %>% 
+  group_by(city_state) %>% 
+  mutate(total_n = n()) %>%
+  filter(disposition %in% c("Closed without arrest","Open/No arrest"))   %>% 
+  mutate(unsolved = n()) %>% 
+  group_by(city_state, total_n, unsolved) %>% 
+  summarize()
+
+homicide_s
+
+```
+We Create a city_state variable summarize within cities, and we obtained the total number of homicides and the number of unsolved homicides in 50 cities.
+
+```{r p2 Baltimore}
+
+BT<-homicide_s %>% 
+  filter(city_state == "Baltimore,MD") 
+  
+BT<-BT %>% 
+  ungroup() %>% 
+  mutate(total_n = as.numeric(total_n),
+         unsolved = as.numeric(unsolved)) %>% 
+  select(unsolved,total_n) 
+
+BT_prop<-prop.test(BT$unsolved,BT$total_n)
+
+BT_prop %>% 
+  broom::tidy() %>% 
+  select(estimate, conf.low, conf.high)
+
+save(BT_prop,file = "BT_prop.RData")
+
+```
+For Baltimore, we used the prop.test function to estimate the proportion of homicides that are unsolved; 
+the estimate is 0.646 with 95%CI(0.628,0.663).
+
+```{r p2 cities}
+
+
+city_prop_test = function(x){
+  
+  city_homicides = 
+    homicide_s %>% 
+    filter(city_state == x)
+  
+  prop.test(city_homicides$unsolved, city_homicides$total_n) %>% 
+    broom::tidy() %>% 
+    select(estimate, conf.low, conf.high)
+}
+
+city_prop = 
+  tibble(city_state = homicide_s$city_state) %>% 
+  mutate(map(.x = homicide_s$city_state, ~city_prop_test(.x))) %>% 
+  unnest
+
+city_prop
+
+
+
+```
+For all 50 cities, we used the prop.test function to estimate the proportion of homicides that are unsolved.
+
+```{r p2 errorbar}
+
+city_prop %>% 
+  ggplot(aes(x = reorder(city_state,estimate), y = estimate, color = city_state)) + geom_point() +
+  geom_errorbar(mapping = aes(ymin = conf.low, ymax = conf.high))+
+theme_bw() +
+  theme(legend.position = "left",
+        axis.text.x = element_text(angle = 90, size = 7))+
+ labs(
+      title = "Estimated proportion of unsolved case across cities with error bars",
+      x = "Cities",
+      y = "Estimates"
+    )
 
 ```
 
+Comment:From the plot, top 3 cities have the largest proportion of unsolved homicides are Chicago, New Orleans,Baltimore, and Richmond,Charlotte and Memphis have the smallerst proprotion of unsolved homicides.
