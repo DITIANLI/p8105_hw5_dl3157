@@ -141,7 +141,7 @@ city_prop %>%
   ggplot(aes(x = reorder(city_state,estimate), y = estimate, color = city_state)) + geom_point() +
   geom_errorbar(mapping = aes(ymin = conf.low, ymax = conf.high))+
 theme_bw() +
-  theme(legend.position = "left",
+  theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90, size = 7))+
  labs(
       title = "Estimated proportion of unsolved case across cities with error bars",
